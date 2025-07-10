@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: ./user-service
+    volumes:
+      - user-db-data:/app/db
+      - ./user-service/migrations:/app/migrations
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - USER_DB_PATH=${USER_DB_PATH}
+      - JWT_ACCESS_EXP_MINUTES=${JWT_ACCESS_EXP_MINUTES}
+      - JWT_REFRESH_EXP_DAYS=${JWT_REFRESH_EXP_DAYS}
+
+  product-service:
+    build: ./product-service
+    volumes:
+      - product-db-data:/app/db
+    environment:
+      - PRODUCT_DB_PATH=${PRODUCT_DB_PATH}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+    depends_on:
+      - user-service
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - user-service
+      - product-service
+
+volumes:
+  user-db-data:
+  product-db-data:

@@ -1,0 +1,35 @@
+# Ignore Git related files
+.git
+.gitignore
+
+# Python specific ignores
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+env
+venv
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ipynb_checkpoints
+
+# Environment variables
+.env
+
+# Local database files (these are handled by volumes, not copied into image)
+*.db
+
+# Flask-Migrate specific (migration scripts are part of your source, but not needed during runtime build)
+migrations/
+alembic.ini
+
+# Docker Compose files (not needed inside the image)
+docker-compose.yml
+docker-compose.*.yml
+
+# IDE specific files
+.vscode
+.idea
+*.swp
+*~

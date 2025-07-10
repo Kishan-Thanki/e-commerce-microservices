@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.env # Environment variables file
+
+# Flask-SQLAlchemy specific
+*.db # SQLite database files (e.g., user.db, products.db)
+migrations/versions/ # Generated migration scripts (optional, but often kept out if you don't commit them)
+alembic.ini # Alembic configuration (optional, but often kept out)
+
+# Docker
+*.log # Docker container logs
+*.tar # Docker image tarballs
+.dockerignore # This file itself should be committed
+docker-compose.override.yml # If you use an override file
+
+# OS and Editor specific
+.DS_Store
+.vscode/
+*.swp
+*~
+.idea/
