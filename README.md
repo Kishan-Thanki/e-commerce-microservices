@@ -178,4 +178,4 @@ e-commerce/
 
 ## 📄 License
 
-This project is open-source and available under the [MIT License]([https://opensource.org/licenses/MIT](https://github.com/Kishan-Thanki/e-commerce-microservices?tab=MIT-1-ov-file#readme)).
+This project is open-source and available under the [MIT License](https://github.com/Kishan-Thanki/e-commerce-microservices?tab=MIT-1-ov-file#readme)
