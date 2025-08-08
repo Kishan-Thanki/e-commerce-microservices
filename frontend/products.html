@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - MyStore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <h2>Our Products</h2>
+        <div id="create-product-section-message-container" class="container" style="display: none;"></div>
+
+        <div id="create-product-section" style="display: none;">
+            <h3>Add New Product</h3>
+            <form id="create-product-form">
+                <div class="form-group">
+                    <label for="product-name">Name:</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description:</label>
+                    <textarea id="product-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Price:</label>
+                    <input type="number" id="product-price" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-stock">Stock:</label>
+                    <input type="number" id="product-stock" min="0" required>
+                </div>
+                <button type="submit" class="button">Create Product</button>
+            </form>
+            <hr>
+        </div>
+
+        <div id="product-list-message-container" class="container" style="display: none;"></div>
+        <div id="product-list" class="product-grid">
+            <p>Loading products...</p>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/static/js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/header.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response not ok for header.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('header-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading header:', error));
+
+            fetch('/footer.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response not ok for footer.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('footer-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
+
+    <script type="module">
+        import { ProductModule } from '/static/js/modules/product.js';
+        import { AuthModule } from '/static/js/modules/auth.js';
+        import { showMessage } from '/static/js/main.js';
+
+        async function loadProducts() {
+            const productListDiv = document.getElementById('product-list');
+            productListDiv.innerHTML = '<p>Loading products...</p>';
+            try {
+                const products = await ProductModule.getProducts();
+                if (products.length === 0) {
+                    productListDiv.innerHTML = '<p class="info-message">No products found. Be the first to add one!</p>';
+                    return;
+                }
+                productListDiv.innerHTML = ''; // Clear content before adding new cards
+                products.forEach(product => {
+                    const productCard = `
+                        <div class="product-card">
+                            <h3>${product.name}</h3>
+                            <p>${product.description}</p>
+                            <div class="price">$${product.price.toFixed(2)}</div>
+                            <div class="stock">In Stock: ${product.stock}</div>
+                        </div>
+                    `;
+                    productListDiv.innerHTML += productCard;
+                });
+            } catch (error) {
+                // showMessage from product.js handles user feedback, here we just log
+                console.error("Error loading products:", error);
+                productListDiv.innerHTML = `<p class="error-message">Failed to load products. ${error.message || 'Please try again.'}</p>`;
+            }
+        }
+
+        async function initProductPage() {
+            await new Promise(resolve => setTimeout(resolve, 0)); // Allow header/footer to load
+
+            await loadProducts(); // Load products first
+
+            const createProductSection = document.getElementById('create-product-section');
+            if (createProductSection) { // Ensure the element exists
+                if (AuthModule.isAuthenticated()) {
+                    const isAdmin = await AuthModule.verifyAdmin();
+                    if (isAdmin) {
+                        createProductSection.style.display = 'block';
+                    } else {
+                        createProductSection.style.display = 'none'; // Explicitly hide if authenticated but not admin
+                    }
+                } else {
+                    createProductSection.style.display = 'none'; // Explicitly hide if not authenticated
+                }
+            }
+
+            const createProductForm = document.getElementById('create-product-form');
+            if (createProductForm) {
+                createProductForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('product-name').value;
+                    const description = document.getElementById('product-description').value;
+                    const price = parseFloat(document.getElementById('product-price').value);
+                    const stock = parseInt(document.getElementById('product-stock').value, 10);
+
+                    if (!name || isNaN(price) || isNaN(stock)) {
+                        showMessage('error', 'Please fill in all required fields (Name, Price, Stock) with valid numbers.', 'create-product-section-message-container');
+                        return;
+                    }
+
+                    const newProduct = { name, description, price, stock };
+                    try {
+                        await ProductModule.createProduct(newProduct); // Removed redundant token param
+                        createProductForm.reset(); // Clear form
+                        await loadProducts(); // Reload products to show new one
+                    } catch (error) {
+                        // showMessage is handled within ProductModule.createProduct
+                        console.error('Failed to create product:', error);
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+             // Initial hide for message containers, in case they have old content
+             const createProductMsgContainer = document.getElementById('create-product-section-message-container');
+             if (createProductMsgContainer && !createProductMsgContainer.innerHTML.trim()) {
+                 createProductMsgContainer.style.display = 'none';
+             }
+             const productListMsgContainer = document.getElementById('product-list-message-container');
+             if (productListMsgContainer && !productListMsgContainer.innerHTML.trim()) {
+                 productListMsgContainer.style.display = 'none';
+             }
+        });
+
+        document.addEventListener('DOMContentLoaded', initProductPage);
+    </script>
+</body>
+</html>

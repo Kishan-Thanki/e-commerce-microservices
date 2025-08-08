@@ -17,6 +17,6 @@ def create_app():
     migrate.init_app(app, db)
 
     from .routes import bp as product_bp
-    app.register_blueprint(product_bp)
+    app.register_blueprint(product_bp, url_prefix='/products')
 
     return app

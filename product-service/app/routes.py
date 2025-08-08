@@ -3,7 +3,7 @@ from .models import db, Product
 import requests
 import os
 
-bp = Blueprint('product', __name__, url_prefix='/products')
+bp = Blueprint('product', __name__)
 
 def verify_admin(token):
     try:
@@ -21,7 +21,7 @@ def verify_admin(token):
         return False
 
 
-@bp.route('', methods=['POST'])
+@bp.route('/products', methods=['POST'])
 def create_product():
     auth_header = request.headers.get('Authorization')
     if not auth_header or 'Bearer ' not in auth_header:
@@ -54,7 +54,7 @@ def create_product():
     }), 201
 
 
-@bp.route('', methods=['GET'])
+@bp.route('/products', methods=['GET'])
 def get_products():
     products = Product.query.all()
     return jsonify([{

@@ -11,6 +11,12 @@ services:
       - USER_DB_PATH=${USER_DB_PATH}
       - JWT_ACCESS_EXP_MINUTES=${JWT_ACCESS_EXP_MINUTES}
       - JWT_REFRESH_EXP_DAYS=${JWT_REFRESH_EXP_DAYS}
+      - HARDCODED_ADMIN_USERNAME=${HARDCODED_ADMIN_USERNAME}
+      - HARDCODED_ADMIN_PASSWORD=${HARDCODED_ADMIN_PASSWORD}
+    ports:
+      - "5003:5000"
+    networks:
+      - app-network
 
   product-service:
     build: ./product-service
@@ -18,20 +24,33 @@ services:
       - product-db-data:/app/db
     environment:
       - PRODUCT_DB_PATH=${PRODUCT_DB_PATH}
-      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - USER_SERVICE_URL=http://nginx:80
     depends_on:
       - user-service
+    ports:
+      - "5001:5001"
+    networks:
+      - app-network
 
   nginx:
-    image: nginx:latest
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
     ports:
       - "80:80"
     volumes:
-      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./api-gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
     depends_on:
       - user-service
       - product-service
+    networks:
+      - app-network
 
 volumes:
   user-db-data:
   product-db-data:
+
+networks:
+  app-network:
+    driver: bridge

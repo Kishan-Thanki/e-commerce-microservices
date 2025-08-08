@@ -10,6 +10,7 @@ HARDCODED_ADMIN_USERNAME = os.getenv('HARDCODED_ADMIN_USERNAME', 'admin_test')
 HARDCODED_ADMIN_PASSWORD = os.getenv('HARDCODED_ADMIN_PASSWORD', 'admin_password')
 HARDCODED_ADMIN_ID = 0
 
+
 @bp.route('/', methods=['GET'])
 def get_all_users():
     users = User.query.all()
@@ -23,6 +24,7 @@ def get_all_users():
             'created_at': user.created_at.isoformat()
         })
     return jsonify(users_data), 200
+
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -72,7 +74,8 @@ def login():
         return jsonify({
             'access_token': access_token,
             'refresh_token': refresh_token,
-            'user_id': HARDCODED_ADMIN_ID
+            'user_id': HARDCODED_ADMIN_ID,
+            'role': 'admin'
         })
 
     user = User.query.filter_by(username=username).first()
@@ -82,19 +85,22 @@ def login():
     access_token = jwt.encode({
         'sub': user.id,
         'exp': datetime.utcnow() + timedelta(minutes=int(os.getenv('JWT_ACCESS_EXP_MINUTES', 15))),
-        'type': 'access'
+        'type': 'access',
+        'role': user.role or 'user'
     }, os.getenv('SECRET_KEY'), algorithm="HS256")
 
     refresh_token = jwt.encode({
         'sub': user.id,
         'exp': datetime.utcnow() + timedelta(days=int(os.getenv('JWT_REFRESH_EXP_DAYS', 7))),
-        'type': 'refresh'
+        'type': 'refresh',
+        'role': user.role or 'user'
     }, os.getenv('SECRET_KEY'), algorithm="HS256")
 
     return jsonify({
         'access_token': access_token,
         'refresh_token': refresh_token,
-        'user_id': user.id
+        'user_id': user.id,
+        'role': user.role or 'user'
     })
 
 
@@ -133,3 +139,28 @@ def verify_role():
     except jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid token'}), 401
 
+
+@bp.route('/logout', methods=['POST'])
+def logout():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or 'Bearer ' not in auth_header:
+        return jsonify({'error': 'Missing token'}), 401
+
+    token = auth_header.split(' ')[1]
+
+    try:
+        payload = jwt.decode(token, os.getenv('SECRET_KEY'), algorithms=['HS256'])
+
+        if payload.get('type') != 'access':
+            return jsonify({'error': 'Should use access token for logout'}), 400
+
+        return jsonify({
+            'message': 'Logout successful',
+            'user_id': payload["sub"],
+            'redirect': '/login.html'
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Session expired. Please login again.', 'redirect': '/login.html'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid session. Please login again.', 'redirect': '/login.html'}), 401

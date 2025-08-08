@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - MyStore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <h2>User Accounts</h2>
+        <div id="user-page-message-container" class="container" style="display:none;"></div>
+        <div id="user-list" class="user-list"> <p>Loading users...</p>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load header (adjust path if header.html is in /static/includes/)
+            fetch('/header.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response was not ok for header.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('header-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading header:', error));
+
+            // Load footer (adjust path if footer.html is in /static/includes/)
+            fetch('/footer.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response was not ok for footer.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('footer-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
+    <script type="module">
+        import { AuthModule } from '/static/js/modules/auth.js';
+        import { fetchData, showMessage } from '/static/js/main.js';
+
+        async function loadUsers() {
+            const userListDiv = document.getElementById('user-list');
+            userListDiv.innerHTML = '<p>Loading users...</p>';
+            const messageContainerId = 'user-page-message-container';
+
+            if (!AuthModule.isAuthenticated()) {
+                showMessage('error', 'Please log in to view users.', messageContainerId);
+                userListDiv.innerHTML = ''; // Clear loading message
+                return;
+            }
+
+            // Await AuthModule.verifyAdmin() to get the actual result
+            const isAdmin = await AuthModule.verifyAdmin();
+            if (!isAdmin) {
+                showMessage('error', 'Admin access is required to view all users.', messageContainerId);
+                userListDiv.innerHTML = ''; // Clear loading message
+                return;
+            }
+
+            try {
+                const users = await fetchData('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${AuthModule.getAccessToken()}`
+                    }
+                });
+                if (users.length === 0) {
+                    userListDiv.innerHTML = '<p>No users found.</p>';
+                    return;
+                }
+                userListDiv.innerHTML = ''; // Clear loading text
+                // The `user-list` class is already on the div#user-list itself, so we don't need to create a new `ul`
+                // if the CSS expects it directly on the container. If you want a `ul` inside, you can uncomment that.
+                // For now, I'll assume `user-list-item` is direct children of `user-list` container.
+                users.forEach(user => {
+                    const userItemDiv = document.createElement('div'); // Using div instead of li to match current user-list-item styling
+                    userItemDiv.classList.add('user-list-item');
+                    userItemDiv.innerHTML = `
+                        <div class="user-info">
+                            <h4>${user.username} (${user.role})</h4>
+                            <p>${user.email} - Joined: ${new Date(user.created_at).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                    userListDiv.appendChild(userItemDiv);
+                });
+            } catch (error) {
+                showMessage('error', error.message || 'Failed to fetch users.', messageContainerId);
+                userListDiv.innerHTML = ''; // Clear loading message if error occurs
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        // Initialize message container display
+        document.addEventListener('DOMContentLoaded', () => {
+             const userPageMessageContainer = document.getElementById('user-page-message-container');
+             if (userPageMessageContainer && !userPageMessageContainer.innerHTML.trim()) {
+                 userPageMessageContainer.style.display = 'none';
+             }
+         });
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+/* Product Card Component */
+.product-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.product-card p {
+    font-size: 0.9em;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.product-card .price {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--success-color);
+    margin-bottom: 10px;
+}
+
+.product-card .stock {
+    font-size: 0.8em;
+    color: var(--secondary-color);
+}
+
+/* User List Component */
+.user-list {
+    list-style: none;
+    padding: 0;
+}
+
+.user-list-item {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
+}
+
+.user-list-item .user-info {
+    flex-grow: 1;
+}
+
+.user-list-item .user-info h4 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.user-list-item .user-info p {
+    margin: 5px 0 0 0;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+}
+
+/* main.css or a new products.css (if you create one) for grid layout */
+.product-grid { /* This would be a div wrapping all product-card elements */
+    display: grid;
+    grid-template-columns: 1fr; /* Default: one column on mobile */
+    gap: 20px; /* Space between cards */
+    padding: 20px 0; /* Add some padding around the grid */
+}
+
+@media (min-width: 600px) { /* Two columns on small tablets */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 900px) { /* Three columns on larger tablets/desktops */
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) { /* Four columns on large desktops */
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

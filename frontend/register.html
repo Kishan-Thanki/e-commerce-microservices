@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MyStore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/components.css"> </head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <h2>Register</h2>
+        <div id="register-message-container" class="container" style="display:none;"></div>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="reg-username">Username:</label>
+                <input type="text" id="reg-username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-email">Email:</label>
+                <input type="email" id="reg-email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Password:</label>
+                <input type="password" id="reg-password" name="password" required>
+            </div>
+            <button type="submit" class="button">Register</button>
+        </form>
+        <p>Already have an account? <a href="/login.html">Login here</a>.</p>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load header (adjust path if header.html is in /static/includes/)
+            fetch('/header.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response was not ok for header.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('header-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading header:', error));
+
+            // Load footer (adjust path if footer.html is in /static/includes/)
+            fetch('/footer.html')
+                .then(response => {
+                    if (!response.ok) { throw new Error('Network response was not ok for footer.html: ' + response.statusText); }
+                    return response.text();
+                })
+                .then(html => { document.getElementById('footer-placeholder').innerHTML = html; })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
+    <script type="module">
+        import { AuthModule } from '/static/js/modules/auth.js';
+        import { showMessage } from '/static/js/main.js'; // Import showMessage
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            await AuthModule.register(username, email, password).catch(error => {
+                showMessage('error', error.message || 'Registration failed.', 'register-message-container');
+            });
+        });
+
+        // Initialize message container display
+        document.addEventListener('DOMContentLoaded', () => {
+             const registerMessageContainer = document.getElementById('register-message-container');
+             if (registerMessageContainer && !registerMessageContainer.innerHTML.trim()) {
+                 registerMessageContainer.style.display = 'none';
+             }
+         });
+    </script>
+</body>
+</html>

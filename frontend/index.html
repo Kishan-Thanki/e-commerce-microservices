@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to MyStore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <h1>Welcome to MyStore!</h1>
+        <p>Your one-stop shop for everything you need. Explore our products or manage your account.</p>
+        <p>
+            <a href="/products.html" class="button">View Products</a>
+            <a href="/login.html" class="button button-secondary">Login</a>
+        </p>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="/static/js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load header from its new location (directly in frontend/ if you move it, or static/includes if you follow the previous advice)
+            // Assuming header.html and footer.html are moved directly into frontend/ for Option 1:
+            fetch('/header.html') // Change path if you put them in /static/includes/
+                .then(response => {
+                    if (!response.ok) {
+                        // Log an error if the file can't be fetched
+                        throw new Error('Network response was not ok for header.html: ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                })
+                .catch(error => console.error('Error loading header:', error));
+
+            // Load footer from its new location
+            fetch('/footer.html') // Change path if you put them in /static/includes/
+                .then(response => {
+                    if (!response.ok) {
+                        // Log an error if the file can't be fetched
+                        throw new Error('Network response was not ok for footer.html: ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
+</body>
+</html>
